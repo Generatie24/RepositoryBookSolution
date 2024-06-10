@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using RepositoryBookApp.Data;
+using RepositoryBookApp.Interfaces;
+using RepositoryBookApp.Repositories;
 
 namespace RepositoryBookApp
 {
@@ -16,7 +18,11 @@ namespace RepositoryBookApp
                 options.UseSqlServer(builder.Configuration.GetConnectionString("RepoConn"));
             });
 
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
             builder.Services.AddControllersWithViews();
+
+            
 
             var app = builder.Build();
 
@@ -37,7 +43,7 @@ namespace RepositoryBookApp
 
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}");
+                pattern: "{controller=home}/{action=Index}/{id?}");
 
             app.Run();
         }
