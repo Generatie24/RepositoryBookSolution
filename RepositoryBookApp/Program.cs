@@ -43,7 +43,7 @@ namespace RepositoryBookApp
 
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=home}/{action=Index}/{id?}");
+                pattern: "{controller=Books}/{action=Index}/{id?}");
 
             app.Run();
         }
