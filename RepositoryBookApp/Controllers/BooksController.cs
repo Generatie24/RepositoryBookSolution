@@ -233,7 +233,29 @@ namespace RepositoryBookApp.Controllers
             return View(bookViewModel);
         }
 
+        public async Task<IActionResult> Details(int id)
+        {
 
+            var book = await _unitOfWork.BooksRelated.GetBookWithGenresAndAuthorsAsync(id);
+            if (book == null)
+            {
+                return NotFound();
+            }
+            var viewModel = new BookDetailsViewModel
+            {
+                BookId = book.BookId,
+                Title = book.Title,
+                AuthorName = book.Author.Name,
+                GenreNames = book.BookGenres.Select(bg => bg.Genre.Name).ToList(),
+                IsAvailable = book.IsAvailable,
+                IsNewRelease = book.IsNewRelease,
+                IsBestSeller = book.IsBestSeller,
+                BindingType = book.BindingType.ToString(),
+                ImagePath = book.ImagePath
+            };
+
+            return View(viewModel);
+        }
 
     }
 }

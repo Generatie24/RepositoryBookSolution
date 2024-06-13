@@ -6,5 +6,7 @@ namespace RepositoryBookApp.Interfaces
     {
         Task<(IEnumerable<Book> Books, int Count)> GetAllBooksWithAuthorsAndGenresAsync(int pageNumber, int pageSize);
         Task<Book> GetBookWithGenresAsync(int id);
+        Task<Book> GetBookWithGenresAndAuthorsAsync(int id);
+
     }
 }

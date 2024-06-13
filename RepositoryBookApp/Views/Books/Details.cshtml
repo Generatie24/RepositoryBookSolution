@@ -1,0 +1,67 @@
+﻿@model BookDetailsViewModel
+
+<h2>Boek Details</h2>
+
+<div class="card">
+    <div class="card-body">
+        <h4 class="card-title">@Model.Title</h4>
+        <hr />
+        <div class="row">
+            <div class="col-sm-3">
+                @if (!string.IsNullOrEmpty(Model.ImagePath))
+                {
+                    <img src="@Model.ImagePath" class="img-thumbnail img-fluid float-left" style="width: 150px; height: 200px; margin-right: 15px;" alt="Boek Afbeelding" />
+                }
+            </div>
+            <div class="col-sm-9">
+                <dl class="row">
+                    <dt class="col-sm-4">Titel</dt>
+                    <dd class="col-sm-8">@Model.Title</dd>
+
+                    <dt class="col-sm-4">Auteur</dt>
+                    <dd class="col-sm-8">@Model.AuthorName</dd>
+
+                    <dt class="col-sm-4">Availability</dt>
+                    <dd class="col-sm-8">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" disabled="disabled" @(Model.IsAvailable ? "checked" : "") />
+                            <label class="form-check-label">Available</label>
+                        </div>
+                    </dd>
+
+                    <dt class="col-sm-4">New Release</dt>
+                    <dd class="col-sm-8">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" disabled="disabled" @(Model.IsNewRelease ? "checked" : "") />
+                            <label class="form-check-label">New Release</label>
+                        </div>
+                    </dd>
+
+                    <dt class="col-sm-4">Bestseller</dt>
+                    <dd class="col-sm-8">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" disabled="disabled" @(Model.IsBestSeller ? "checked" : "") />
+                            <label class="form-check-label">Bestseller</label>
+                        </div>
+                    </dd>
+
+                    <dt class="col-sm-4">Binding Type</dt>
+                    <dd class="col-sm-8">@Model.BindingType</dd>
+
+                    <dt class="col-sm-4">Genres</dt>
+                    <dd class="col-sm-8">
+                        @foreach (var genre in Model.GenreNames)
+                        {
+                            <span class="badge" style="background-color: #007bff; color: white;">@genre</span>
+                        }
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a asp-action="Edit" asp-route-id="@Model.BookId" class="btn btn-warning">Bewerken</a>
+    <a asp-action="Index" class="btn btn-secondary">Terug naar lijst</a>
+</div>
