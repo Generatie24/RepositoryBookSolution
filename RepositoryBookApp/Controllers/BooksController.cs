@@ -96,6 +96,7 @@ namespace RepositoryBookApp.Controllers
             }
 
             //string imagePath = await SaveImageAsync(viewModel.Image);
+
             string? imagePath = viewModel.Image != null && viewModel.Image.Length > 0
         ? await SaveImageAsync(viewModel.Image)
         : "/images/Default.jpg";
