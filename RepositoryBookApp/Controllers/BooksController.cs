@@ -53,7 +53,6 @@ namespace RepositoryBookApp.Controllers
             return View(viewModel);
         }
 
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult SetPageSize(int pageSize)
@@ -62,7 +61,7 @@ namespace RepositoryBookApp.Controllers
             {
                 ModelState.AddModelError("PageSize", "The page size must be between 3 and 20");
                 ViewBag.PageSize = pageSize;
-                return View("Index", new BookListViewModel { Books = new PaginatedList<BookIndexViewModel>(new List<BookIndexViewModel>(), 0, 1, pageSize)});
+                return View("Index", new BookListViewModel { Books = new PaginatedList<BookIndexViewModel>(new List<BookIndexViewModel>(), 0, 1, pageSize) });
             }
 
             CookieOptions options = new CookieOptions
@@ -71,8 +70,8 @@ namespace RepositoryBookApp.Controllers
             };
 
             Response.Cookies.Append("PageSize", pageSize.ToString(), options);
-            
-            return RedirectToAction(nameof(Index)); 
+
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpGet]
@@ -96,8 +95,11 @@ namespace RepositoryBookApp.Controllers
                 viewModel.Genres = (await _unitOfWork.Genres.GetAllAsync()).ToList();
             }
 
-            string imagePath = await SaveImageAsync(viewModel.Image);
-          
+            //string imagePath = await SaveImageAsync(viewModel.Image);
+            string? imagePath = viewModel.Image != null && viewModel.Image.Length > 0
+        ? await SaveImageAsync(viewModel.Image)
+        : "/images/Default.jpg";
+
             var newBook = new Book
             {
                 Title = viewModel.Books.Title,
@@ -145,6 +147,92 @@ namespace RepositoryBookApp.Controllers
 
             return "/images/" + uniqueFileName;
         }
+
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
+        {
+            var book = await _unitOfWork.BooksRelated.GetBookWithGenresAsync(id);
+            if (book == null)
+            {
+                return NotFound();
+            }
+
+            var bookViewModel = new EditBookViewModel
+            {
+                BookId = book.BookId,
+                Title = book.Title,
+                AuthorId = book.AuthorId,
+                SelectedGenres = book.BookGenres.Select(bg => bg.GenreId).ToList(),
+                IsAvailable = book.IsAvailable,
+                IsNewRelease = book.IsNewRelease,
+                IsBestSeller = book.IsBestSeller,
+                BindingType = book.BindingType,
+                ImagePath = book.ImagePath,
+                Authors = (await _unitOfWork.Authors.GetAllAsync()).ToList(),
+                Genres = (await _unitOfWork.Genres.GetAllAsync()).ToList()
+            };
+            return View(bookViewModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, EditBookViewModel bookViewModel)
+        {
+
+            if (id != bookViewModel.BookId)
+            {
+                return NotFound();
+            }
+
+            if (ModelState.IsValid)
+            {
+                var book = await _unitOfWork.BooksRelated.GetBookWithGenresAsync(id);
+
+                if (book == null)
+                {
+                    return NotFound();
+                }
+
+                string? imagePath = book.ImagePath;
+                if (bookViewModel.Image !=null && bookViewModel.Image.Length > 0)
+                {
+                    imagePath = await SaveImageAsync(bookViewModel.Image);
+                }
+
+                // update book
+                book.Title = bookViewModel.Title;
+                book.AuthorId = bookViewModel.AuthorId;
+                book.IsAvailable = bookViewModel.IsAvailable;
+                book.IsNewRelease = bookViewModel.IsNewRelease;
+                book.IsBestSeller = bookViewModel.IsBestSeller;
+                book.BindingType = bookViewModel.BindingType;
+                book.ImagePath = imagePath;
+
+                // update genres
+
+                book.BookGenres.Clear();
+                if (bookViewModel.SelectedGenres != null)
+                {
+                    foreach (var genreId in bookViewModel.SelectedGenres)
+                    {
+                        book.BookGenres.Add(new BookGenre { BookId = book.BookId, GenreId = genreId });
+                    }
+                }
+
+                await _unitOfWork.Books.UpdateAsync(book);
+                await _unitOfWork.CompleteAsync();
+
+                return RedirectToAction(nameof(Index)); 
+            }
+            else
+            {
+                bookViewModel.Authors = (await _unitOfWork.Authors.GetAllAsync()).ToList();
+                bookViewModel.Genres = (await _unitOfWork.Genres.GetAllAsync()).ToList();
+            }
+
+            return View(bookViewModel);
+        }
+
 
 
     }
