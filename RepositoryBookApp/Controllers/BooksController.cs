@@ -19,8 +19,15 @@ namespace RepositoryBookApp.Controllers
             _unitOfWork = unitOfWork;
             _webHostEnvironment = webHostEnvironment;
         }
-        public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 2)
+        public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 3)
         {
+
+            if (Request.Cookies["PageSize"] != null && int.TryParse(Request.Cookies["PageSize"], out var storedPageSize))
+            {
+                pageSize = storedPageSize;
+            }
+
+
             var (books, count) = await _unitOfWork.BooksRelated.GetAllBooksWithAuthorsAndGenresAsync(pageNumber, pageSize);
 
             var booksViewModels = books.Select(book => new BookIndexViewModel
@@ -42,7 +49,30 @@ namespace RepositoryBookApp.Controllers
                 Books = paginatedBooks,
                 TotalBooks = count
             };
+            ViewBag.PageSize = pageSize;
             return View(viewModel);
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult SetPageSize(int pageSize)
+        {
+            if (pageSize < 3 || pageSize > 20)
+            {
+                ModelState.AddModelError("PageSize", "The page size must be between 3 and 20");
+                ViewBag.PageSize = pageSize;
+                return View("Index", new BookListViewModel { Books = new PaginatedList<BookIndexViewModel>(new List<BookIndexViewModel>(), 0, 1, pageSize)});
+            }
+
+            CookieOptions options = new CookieOptions
+            {
+                Expires = DateTime.Now.AddDays(30)
+            };
+
+            Response.Cookies.Append("PageSize", pageSize.ToString(), options);
+            
+            return RedirectToAction(nameof(Index)); 
         }
 
         [HttpGet]
@@ -67,12 +97,7 @@ namespace RepositoryBookApp.Controllers
             }
 
             string imagePath = await SaveImageAsync(viewModel.Image);
-            if (imagePath == null)
-            {
-                viewModel.Authors = (await _unitOfWork.Authors.GetAllAsync()).ToList();
-                viewModel.Genres = (await _unitOfWork.Genres.GetAllAsync()).ToList();
-                return View(viewModel);
-            }
+          
             var newBook = new Book
             {
                 Title = viewModel.Books.Title,

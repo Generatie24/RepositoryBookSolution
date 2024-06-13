@@ -1,8 +1,24 @@
 ﻿@model BookListViewModel
 
+@{
+    var pageSize = ViewBag.PageSize;
+}
+
 <h2>Overview</h2>
 <div class="mb-3">
     <a asp-action="Create" asp-controller="Books" class="btn btn-primary">Add New Book</a>
+</div>
+
+<div class="mb-3">
+    <form asp-action="SetPageSize" method="post" id="pageSizeForm">
+       <label for="pageSize">Items per page</label>
+        @* <input type="number" name="pageSize" id="pageSize" class="form-control" value=min ="3" max="20" required /> *@
+
+        <input type="number" name="pageSize" id="pageSize" class="form-control" value="@pageSize" min="3" max="20" required />
+     
+       <button type="submit" class="btn btn-primary">Set</button>
+
+    </form>
 </div>
 
 <table class="table table-striped">
